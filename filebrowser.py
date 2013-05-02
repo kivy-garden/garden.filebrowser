@@ -8,7 +8,6 @@ The :class:`FileBrowser` widget is an advanced file browser.
 
 __all__ = ('FileBrowser', )
 
-from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeViewLabel, TreeView
 from kivy.uix.filechooser import FileChooserListView
@@ -17,7 +16,8 @@ from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
 from kivy.lang import Builder
 from kivy.utils import platform as core_platform
 import string
-from os.path import sep, dirname, expanduser
+from os.path import sep, dirname, expanduser, isdir
+from os import walk
 
 platform = core_platform()
 if platform == 'win':
@@ -33,10 +33,28 @@ def get_drives():
             if bitmask & 1:
                 name = create_string_buffer(64)
                 # get name of the drive
-                res = GetVolumeInformationA(letter + ':' + sep, name, 64, None,
+                drive = letter + ':'
+                res = GetVolumeInformationA(drive + sep, name, 64, None,
                                             None, None, None, 0)
-                drives.append((letter, name.value))
+                drives.append((drive, name.value))
             bitmask >>= 1
+    elif platform == 'linux':
+        drives.append((sep, sep))
+        drives.append((expanduser('~'), '~/'))
+        mnt = sep + 'mnt'
+        if isdir(mnt):
+            for drive in walk(mnt).next()[1]:
+                drives.append((mnt + sep + drive, drive))
+        media = sep + 'media'
+        if isdir(media):
+            for drive in walk(media).next()[1]:
+                drives.append((media + sep + drive, drive))
+    elif platform == 'macosx' or platform == 'ios':
+        drives.append((expanduser('~'), '~/'))
+        vol = sep + 'Volume'
+        if isdir(vol):
+            for drive in walk(vol).next()[1]:
+                drives.append((vol + sep + drive, drive))
     return drives
 
 Builder.load_string('''
@@ -133,63 +151,69 @@ class TreeLabel(TreeViewLabel):
 
 
 class LinkTree(TreeView):
-    # we use this to generate the paths on the side bar
-    _generator = ObjectProperty(FileChooserListView(filters=['']))
-    # we want to reuse the generator, so only allow one usage at a time
-    _last_node = ObjectProperty(None, allownone=True)
     # link to the favorites section of link bar
     _favs = ObjectProperty(None)
 
     def fill_tree(self):
-        user_path = dirname(expanduser('~')) + sep
+        if platform == 'win':
+            user_path = dirname(expanduser('~')) + sep
+        else:
+            user_path = expanduser('~') + sep
         self._favs = self.add_node(TreeLabel(text='Favorites', is_open=True,
                                              no_selection=True))
         self.reload_favs([])
 
         libs = self.add_node(TreeLabel(text='Libraries', is_open=True,
                                        no_selection=True))
-        self.add_node(TreeLabel(text='Documents', path=user_path +
-                                'Documents'), libs)
-        self.add_node(TreeLabel(text='Music', path=user_path +
-                                'Music'), libs)
-        self.add_node(TreeLabel(text='Pictures', path=user_path +
-                                'Pictures'), libs)
-        self.add_node(TreeLabel(text='Videos', path=user_path +
-                                'Videos'), libs)
+        if isdir(user_path + 'Documents'):
+            self.add_node(TreeLabel(text='Documents', path=user_path +
+                                    'Documents'), libs)
+        if isdir(user_path + 'Music'):
+            self.add_node(TreeLabel(text='Music', path=user_path +
+                                    'Music'), libs)
+        if isdir(user_path + 'Pictures'):
+            self.add_node(TreeLabel(text='Pictures', path=user_path +
+                                    'Pictures'), libs)
+        if isdir(user_path + 'Videos'):
+            self.add_node(TreeLabel(text='Videos', path=user_path +
+                                    'Videos'), libs)
 
         comp = self.add_node(TreeLabel(text='Computer', is_open=True,
                                        no_selection=True))
         for path, name in get_drives():
-            self.add_node(TreeLabel(text=('%s ' % name if name else '')
-                                    + '(%s:)' % path, path=path + ':' + sep),
-                          comp)
+            if platform == 'win':
+                text = ('%s ' % name if name else '') + '(%s)' % path
+            else:
+                text = name
+            self.add_node(TreeLabel(text=text, path=path + sep), comp)
 
     def reload_favs(self, fav_list):
-        user_path = dirname(expanduser('~')) + sep
+        if platform == 'win':
+            user_path = dirname(expanduser('~')) + sep
+        else:
+            user_path = expanduser('~') + sep
         favs = self._favs
         for node in self.iterate_all_nodes(favs):
             if node != favs:
                 self.remove_node(node)
-        self.add_node(TreeLabel(text='Desktop', path=user_path +
-                                'Desktop'), favs)
-        self.add_node(TreeLabel(text='Downloads', path=user_path +
-                                'Downloads'), favs)
+        if isdir(user_path + 'Desktop'):
+            self.add_node(TreeLabel(text='Desktop', path=user_path +
+                                    'Desktop'), favs)
+        if isdir(user_path + 'Downloads'):
+            self.add_node(TreeLabel(text='Downloads', path=user_path +
+                                    'Downloads'), favs)
         for path, name in fav_list:
             self.add_node(TreeLabel(text=name, path=path), favs)
 
     def trigger_populate(self, node):
-        if self._last_node or not node.path or node.nodes:
+        if not node.path or node.nodes:
             return
-        self._generator.bind(files=self.populate)
-        self._last_node = node
-        self._generator.path = node.path
-
-    def populate(self, *args):
-        self._generator.unbind(files=self.populate)
-        node = self._last_node
-        self._last_node = None
-        for path in self._generator.files:
-            self.add_node(TreeLabel(text=path.split(sep)[-1], path=path), node)
+        parent = node.path
+        next = walk(parent).next()
+        if next:
+            for path in next[1]:
+                self.add_node(TreeLabel(text=path, path=parent + sep + path),
+                              node)
 
 
 class FileBrowser(BoxLayout):
@@ -244,10 +268,12 @@ class FileBrowser(BoxLayout):
     '''
 
 
-class TestApp(App):
-
-    def build(self):
-        return FileBrowser()
-
 if __name__ == '__main__':
+    from kivy.app import App
+
+    class TestApp(App):
+
+        def build(self):
+            return FileBrowser()
+
     TestApp().run()
