@@ -50,14 +50,11 @@ def get_drives():
     elif platform == 'linux':
         drives.append((sep, sep))
         drives.append((expanduser('~'), '~/'))
-        mnt = sep + 'mnt'
-        if isdir(mnt):
-            for drive in walk(mnt).next()[1]:
-                drives.append((mnt + sep + drive, drive))
-        media = sep + 'media'
-        if isdir(media):
-            for drive in walk(media).next()[1]:
-                drives.append((media + sep + drive, drive))
+        places = (sep + 'mnt', sep + 'media')
+        for place in places:
+            if isdir(place):
+                for directory in walk(place).next()[1]:
+                    drives.append((place + sep + directory, directory))
     elif platform == 'macosx' or platform == 'ios':
         drives.append((expanduser('~'), '~/'))
         vol = sep + 'Volume'
@@ -174,19 +171,11 @@ class LinkTree(TreeView):
 
         libs = self.add_node(TreeLabel(text='Libraries', is_open=True,
                                        no_selection=True))
-        if isdir(user_path + 'Documents'):
-            self.add_node(TreeLabel(text='Documents', path=user_path +
-                                    'Documents'), libs)
-        if isdir(user_path + 'Music'):
-            self.add_node(TreeLabel(text='Music', path=user_path +
-                                    'Music'), libs)
-        if isdir(user_path + 'Pictures'):
-            self.add_node(TreeLabel(text='Pictures', path=user_path +
-                                    'Pictures'), libs)
-        if isdir(user_path + 'Videos'):
-            self.add_node(TreeLabel(text='Videos', path=user_path +
-                                    'Videos'), libs)
-
+        places = ('Documents', 'Music', 'Pictures', 'Videos')
+        for place in places:
+            if isdir(user_path + place):
+                self.add_node(TreeLabel(text=place, path=user_path +
+                                        place), libs)
         comp = self.add_node(TreeLabel(text='Computer', is_open=True,
                                        no_selection=True))
         for path, name in get_drives():
@@ -205,12 +194,11 @@ class LinkTree(TreeView):
         for node in self.iterate_all_nodes(favs):
             if node != favs:
                 self.remove_node(node)
-        if isdir(user_path + 'Desktop'):
-            self.add_node(TreeLabel(text='Desktop', path=user_path +
-                                    'Desktop'), favs)
-        if isdir(user_path + 'Downloads'):
-            self.add_node(TreeLabel(text='Downloads', path=user_path +
-                                    'Downloads'), favs)
+        places = ('Desktop', 'Downloads')
+        for place in places:
+            if isdir(user_path + place):
+                self.add_node(TreeLabel(text=place, path=user_path +
+                                        place), favs)
         for path, name in fav_list:
             self.add_node(TreeLabel(text=name, path=path), favs)
 
