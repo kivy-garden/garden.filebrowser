@@ -95,9 +95,8 @@ Builder.load_string('''
                 LinkTree:
                     id: link_tree
                     browser: tabbed_browser
-                    size_hint: (None, None)
+                    size_hint_y: None
                     height: self.minimum_height
-                    width: max(self.minimum_width, splitter.width)
                     on_parent: self.fill_tree()
                     root_options: {'text': 'Locations', 'no_selection':True}
         TabbedPanel:
