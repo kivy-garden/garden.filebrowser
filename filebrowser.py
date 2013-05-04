@@ -10,8 +10,25 @@ directories. When touching next to a shortcut in the links bar, it'll
 expand and show all the directories within that directory. It also allows
 to specify paths to be added to the shortcuts list.
 
-It provides a icon and list view to choose file from. And it accepts
+It provides a icon and list view to choose files from. And it also accepts
 filter and filename inputs.
+
+To create a FileBrowser which prints the currently selected file as well as
+the current text in the filename field when 'Select' is pressed, with
+a shortcut to the Documents directory added to the favorites bar::
+
+    from os.path import sep, expanduser, isdir, dirname
+    if platform == 'win':
+        user_path = dirname(expanduser('~')) + sep + 'Documents'
+    else:
+        user_path = expanduser('~') + sep + 'Documents'
+    browser = FileBrowser(select_string='Select',
+                          favorites=[(user_path, 'Documents')])
+
+    def select(*args):
+        if browser.select_state == 'down':
+            print browser.selection, browser.filename
+    browser.bind(select_state=select)
 
 '''
 
@@ -80,6 +97,7 @@ Builder.load_string('''
     padding: [6, 6, 6, 6]
     select_state: select_button.state
     cancel_state: cancel_button.state
+    filename: file_text.text
     on_favorites: link_tree.reload_favs(self.favorites)
     selection:
         icon_view.selection if tabbed_browser.current_tab.content == icon_view\
@@ -97,7 +115,7 @@ Builder.load_string('''
                     browser: tabbed_browser
                     size_hint_y: None
                     height: self.minimum_height
-                    on_parent: self.fill_tree()
+                    on_parent: self.fill_tree(root.favorites)
                     root_options: {'text': 'Locations', 'no_selection':True}
         TabbedPanel:
             id: tabbed_browser
@@ -159,14 +177,14 @@ class LinkTree(TreeView):
     # link to the favorites section of link bar
     _favs = ObjectProperty(None)
 
-    def fill_tree(self):
+    def fill_tree(self, fav_list):
         if platform == 'win':
             user_path = dirname(expanduser('~')) + sep
         else:
             user_path = expanduser('~') + sep
         self._favs = self.add_node(TreeLabel(text='Favorites', is_open=True,
                                              no_selection=True))
-        self.reload_favs([])
+        self.reload_favs(fav_list)
 
         libs = self.add_node(TreeLabel(text='Libraries', is_open=True,
                                        no_selection=True))
@@ -190,16 +208,20 @@ class LinkTree(TreeView):
         else:
             user_path = expanduser('~') + sep
         favs = self._favs
+        remove = []
         for node in self.iterate_all_nodes(favs):
             if node != favs:
-                self.remove_node(node)
+                remove.append(node)
+        for node in remove:
+            self.remove_node(node)
         places = ('Desktop', 'Downloads')
         for place in places:
             if isdir(user_path + place):
                 self.add_node(TreeLabel(text=place, path=user_path +
                                         place), favs)
         for path, name in fav_list:
-            self.add_node(TreeLabel(text=name, path=path), favs)
+            if isdir(path):
+                self.add_node(TreeLabel(text=name, path=path), favs)
 
     def trigger_populate(self, node):
         if not node.path or node.nodes:
@@ -246,6 +268,13 @@ class FileBrowser(BoxLayout):
     defaults to 'Cancel'.
     '''
 
+    filename = StringProperty('')
+    '''The current text in the filename field. Read only.
+
+    :data:`filename` is an :class:`~kivy.properties.StringProperty`,
+    defaults to ''.
+    '''
+
     selection = ListProperty([])
     '''A list of the currently selected files.
 
@@ -266,10 +295,22 @@ class FileBrowser(BoxLayout):
 
 if __name__ == '__main__':
     from kivy.app import App
+    from os.path import sep, expanduser, isdir, dirname
 
     class TestApp(App):
 
         def build(self):
-            return FileBrowser()
+            if platform == 'win':
+                user_path = dirname(expanduser('~')) + sep + 'Documents'
+            else:
+                user_path = expanduser('~') + sep + 'Documents'
+            browser = FileBrowser(select_string='Select',
+                                  favorites=[(user_path, 'Documents')])
+
+            def select(*args):
+                if browser.select_state == 'down':
+                    print browser.selection, browser.filename
+            browser.bind(select_state=select)
+            return browser
 
     TestApp().run()
