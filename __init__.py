@@ -17,18 +17,30 @@ To create a FileBrowser which prints the currently selected file as well as
 the current text in the filename field when 'Select' is pressed, with
 a shortcut to the Documents directory added to the favorites bar::
 
+    ffrom kivy.app import App
     from os.path import sep, expanduser, isdir, dirname
-    if platform == 'win':
-        user_path = dirname(expanduser('~')) + sep + 'Documents'
-    else:
-        user_path = expanduser('~') + sep + 'Documents'
-    browser = FileBrowser(select_string='Select',
-                          favorites=[(user_path, 'Documents')])
 
-    def select(*args):
-        if browser.select_state == 'down':
-            print browser.selection, browser.filename
-    browser.bind(select_state=select)
+    class TestApp(App):
+
+        def build(self):
+            if platform == 'win':
+                user_path = dirname(expanduser('~')) + sep + 'Documents'
+            else:
+                user_path = expanduser('~') + sep + 'Documents'
+            browser = FileBrowser(select_string='Select',
+                                  favorites=[(user_path, 'Documents')])
+            browser.bind(
+                        on_success=self._fbrowser_success,
+                        on_canceled=self._fbrowser_canceled)
+            return browser
+
+        def _fbrowser_canceled(self, instance):
+            print 'cancelled, Close self.'
+
+        def _fbrowser_success(self, instance):
+            print instance.selection
+
+    TestApp().run()
 
 :Events:
     `on_canceled`:
