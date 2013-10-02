@@ -205,7 +205,11 @@ class LinkTree(TreeView):
 
     def fill_tree(self, fav_list):
         if platform == 'win':
-            user_path = dirname(expanduser('~')) + sep
+            user_path = expanduser('~')
+            if not isdir(user_path + sep + 'Desktop'):
+                user_path = dirname(user_path) + sep
+            else:
+                user_path += sep
         else:
             user_path = expanduser('~') + sep
         self._favs = self.add_node(TreeLabel(text='Favorites', is_open=True,
@@ -230,7 +234,11 @@ class LinkTree(TreeView):
 
     def reload_favs(self, fav_list):
         if platform == 'win':
-            user_path = dirname(expanduser('~')) + sep
+            user_path = expanduser('~')
+            if not isdir(user_path + sep + 'Desktop'):
+                user_path = dirname(user_path) + sep
+            else:
+                user_path += sep
         else:
             user_path = expanduser('~') + sep
         favs = self._favs
@@ -337,7 +345,10 @@ if __name__ == '__main__':
 
         def build(self):
             if platform == 'win':
-                user_path = dirname(expanduser('~')) + sep + 'Documents'
+                user_path = expanduser('~')
+                if not isdir(user_path + sep + 'Desktop'):
+                    user_path = dirname(user_path)
+                user_path = user_path + sep + 'Documents'
             else:
                 user_path = expanduser('~') + sep + 'Documents'
             browser = FileBrowser(select_string='Select',
