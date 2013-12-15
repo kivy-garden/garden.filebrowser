@@ -52,6 +52,7 @@ a shortcut to the Documents directory added to the favorites bar::
 '''
 
 __all__ = ('FileBrowser', )
+__version__ = '1.0'
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeViewLabel, TreeView
