@@ -48,3 +48,9 @@ a shortcut to the Documents directory added to the favorites bar::
 
     `on_success`:
         Fired when the `Select` buttons `on_release` event is called.
+
+License
+=======
+
+Same license as kivy (currently MIT License).
+
