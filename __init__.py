@@ -212,6 +212,7 @@ class TreeLabel(TreeViewLabel):
 class LinkTree(TreeView):
     # link to the favorites section of link bar
     _favs = ObjectProperty(None)
+    _computer_node = None
 
     def fill_tree(self, fav_list):
         if platform == 'win':
@@ -233,14 +234,36 @@ class LinkTree(TreeView):
             if isdir(user_path + place):
                 self.add_node(TreeLabel(text=place, path=user_path +
                                         place), libs)
-        comp = self.add_node(TreeLabel(text='Computer', is_open=True,
-                                       no_selection=True))
+        self._computer_node = self.add_node(TreeLabel(text='Computer',\
+        is_open=True, no_selection=True))
+        self._computer_node.bind(on_touch_down=self._drives_touch)
+        self.reload_drives()
+
+    def _drives_touch(self, obj, touch):
+        if obj.collide_point(*touch.pos):
+            self.reload_drives()
+
+    def reload_drives(self):
+        nodes = [(node, node.text + node.path) for node in\
+                 self._computer_node.nodes if isinstance(node, TreeLabel)]
+        sigs = [s[1] for s in nodes]
+        nodes_new = []
+        sig_new = []
         for path, name in get_drives():
             if platform == 'win':
                 text = ('%s ' % name if name else '') + '(%s)' % path
             else:
                 text = name
-            self.add_node(TreeLabel(text=text, path=path + sep), comp)
+            nodes_new.append((text, path))
+            sig_new.append(text + path + sep)
+        for node, sig in nodes:
+            print sig
+            if sig not in sig_new:
+                self.remove_node(node)
+        for text, path in nodes_new:
+            if text + path + sep not in sigs:
+                self.add_node(TreeLabel(text=text, path=path + sep),
+                              self._computer_node)
 
     def reload_favs(self, fav_list):
         if platform == 'win':
