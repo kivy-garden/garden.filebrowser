@@ -64,6 +64,7 @@ from kivy.utils import platform as core_platform
 import string
 from os.path import sep, dirname, expanduser, isdir
 from os import walk
+from functools import partial
 
 platform = core_platform()
 if platform == 'win':
@@ -100,8 +101,9 @@ def get_drives():
                 drives.append((vol + sep + drive, drive))
     return drives
 
+
 Builder.load_string('''
-#:kivy 1.1.0
+#:kivy 1.2.0
 #:import metrics kivy.metrics
 
 <TreeLabel>:
@@ -119,9 +121,8 @@ Builder.load_string('''
     cancel_state: cancel_button.state
     filename: file_text.text
     on_favorites: link_tree.reload_favs(self.favorites)
-    selection:
-        icon_view.selection if tabbed_browser.current_tab.content == icon_view\
-        else list_view.selection
+    _listview: list_view
+    _iconview: icon_view
     BoxLayout:
         orientation: 'horizontal'
         spacing: 5
@@ -144,17 +145,27 @@ Builder.load_string('''
             do_default_tab: False
             TabbedPanelItem:
                 text: 'List View'
-                on_release:
-                    list_view.path = icon_view.path
                 FileChooserListView:
                     id: list_view
+                    path: root.path
+                    filters: root.filters
+                    filter_dirs: root.filter_dirs
+                    show_hidden: root.show_hidden
+                    multiselect: root.multiselect
+                    dirselect: root.dirselect
+                    rootpath: root.rootpath
             TabbedPanelHeader:
                 text: 'Icon View'
                 content: icon_view
-                on_release:
-                    icon_view.path = list_view.path
                 FileChooserIconView:
                     id: icon_view
+                    path: root.path
+                    filters: root.filters
+                    filter_dirs: root.filter_dirs
+                    show_hidden: root.show_hidden
+                    multiselect: root.multiselect
+                    dirselect: root.dirselect
+                    rootpath: root.rootpath
     GridLayout:
         size_hint: (1, None)
         height: file_text.line_height * 4
@@ -163,10 +174,8 @@ Builder.load_string('''
         spacing: [5]
         TextInput:
             id: file_text
-            text:
-                root.selection and str(root.selection if\
-                tabbed_browser.current_tab.content.multiselect else
-                root.selection[0]) or ''
+            text: (root.selection and str(root._shorten_filenames(\
+            root.selection) if root.multiselect else root.selection[0])) or ''
             hint_text: 'Filename'
             multiline: False
         Button:
@@ -179,9 +188,9 @@ Builder.load_string('''
             id: filt_text
             hint_text: '*.*'
             on_text_validate:
-                list_view.filters = [self.text] if self.text else []
-                icon_view.filters = [self.text] if self.text else []
+                root.filters = self.text.split(',') if self.text else []
             multiline: False
+            text: ','.join(root.filters)
         Button:
             id: cancel_button
             size_hint_x: None
@@ -275,6 +284,9 @@ class FileBrowser(BoxLayout):
 
     __events__ = ('on_canceled', 'on_success',)
 
+    _listview = ObjectProperty(None)
+    _iconview = ObjectProperty(None)
+
     select_state = OptionProperty('normal', options=('normal', 'down'))
     '''State of the 'select' button, must be one of 'normal' or 'down'.
     The state is 'down' only when the button is currently touched/clicked,
@@ -306,17 +318,91 @@ class FileBrowser(BoxLayout):
     '''
 
     filename = StringProperty('')
-    '''The current text in the filename field. Read only.
+    '''The current text in the filename field. Read only. When multiselect is
+    True, the list of selected filenames is shortened. If shortened, filename
+    will contain an ellipsis.
 
     :data:`filename` is an :class:`~kivy.properties.StringProperty`,
     defaults to ''.
+
+    .. versionchanged:: 1.1
     '''
 
     selection = ListProperty([])
-    '''A list of the currently selected files.
+    '''Read-only :class:`~kivy.properties.ListProperty`.
+    Contains the list of files that are currently selected in the current tab.
+    See :kivydoc:`kivy.filechooser.FileChooserController.selection`.
 
-    :data:`selection` is an :class:`~kivy.properties.ListProperty`,
-    defaults to '[]'.
+    .. versionchanged:: 1.1
+    '''
+
+    path = StringProperty('/')
+    '''
+    :class:`~kivy.properties.StringProperty`, defaults to the current working
+    directory as a unicode string. It specifies the path on the filesystem that
+    browser should refer to.
+    See :kivydoc:`kivy.filechooser.FileChooserController.path`.
+
+    .. versionadded:: 1.1
+    '''
+
+    filters = ListProperty([])
+    ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
+    Specifies the filters to be applied to the files in the directory.
+    See :kivydoc:`kivy.filechooser.FileChooserController.filters`.
+
+    Filering keywords that the user types into the filter field as a comma
+    separated list will be reflected here.
+
+    .. versionadded:: 1.1
+    '''
+
+    filter_dirs = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Indicates whether filters should also apply to directories.
+    See :kivydoc:`kivy.filechooser.FileChooserController.filter_dirs`.
+
+    .. versionadded:: 1.1
+    '''
+
+    show_hidden = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether hidden files and folders should be shown.
+    See :kivydoc:`kivy.filechooser.FileChooserController.show_hidden`.
+
+    .. versionadded:: 1.1
+    '''
+
+    multiselect = BooleanProperty(True)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether the user is able to select multiple files or not.
+    See :kivydoc:`kivy.filechooser.FileChooserController.multiselect`.
+
+    .. versionadded:: 1.1
+    '''
+
+    dirselect = BooleanProperty(False)
+    '''
+    :class:`~kivy.properties.BooleanProperty`, defaults to False.
+    Determines whether directories are valid selections or not.
+    See :kivydoc:`kivy.filechooser.FileChooserController.dirselect`.
+
+    .. versionadded:: 1.1
+    '''
+
+    rootpath = StringProperty(None, allownone=True)
+    '''
+    Root path to use instead of the system root path. If set, it will not show
+    a ".." directory to go up to the root path. For example, if you set
+    rootpath to /users/foo, the user will be unable to go to /users or to any
+    other directory not starting with /users/foo.
+    :class:`~kivy.properties.StringProperty`, defaults to None.
+    See :kivydoc:`kivy.filechooser.FileChooserController.rootpath`.
+
+    .. versionadded:: 1.1
     '''
 
     favorites = ListProperty([])
@@ -337,6 +423,35 @@ class FileBrowser(BoxLayout):
 
     def __init__(self, **kwargs):
         super(FileBrowser, self).__init__(**kwargs)
+        self._iconview.bind(selection=partial(self._attr_callback, 'selection'),
+                            path=partial(self._attr_callback, 'path'),
+                            filters=partial(self._attr_callback, 'filters'),
+                            filter_dirs=partial(self._attr_callback, 'filter_dirs'),
+                            show_hidden=partial(self._attr_callback, 'show_hidden'),
+                            multiselect=partial(self._attr_callback, 'multiselect'),
+                            dirselect=partial(self._attr_callback, 'dirselect'),
+                            rootpath=partial(self._attr_callback, 'rootpath'))
+        self._listview.bind(selection=partial(self._attr_callback, 'selection'),
+                            path=partial(self._attr_callback, 'path'),
+                            filters=partial(self._attr_callback, 'filters'),
+                            filter_dirs=partial(self._attr_callback, 'filter_dirs'),
+                            show_hidden=partial(self._attr_callback, 'show_hidden'),
+                            multiselect=partial(self._attr_callback, 'multiselect'),
+                            dirselect=partial(self._attr_callback, 'dirselect'),
+                            rootpath=partial(self._attr_callback, 'rootpath'))
+
+    def _shorten_filenames(self, filenames):
+        if not len(filenames):
+            return ''
+        elif len(filenames) == 1:
+            return filenames[0]
+        elif len(filenames) == 2:
+            return filenames[0] + ', ' + filenames[1]
+        else:
+            return filenames[0] + ', _..._, ' + filenames[-1]
+
+    def _attr_callback(self, attr, obj, value):
+        setattr(self, attr, getattr(obj, attr))
 
 if __name__ == '__main__':
     from kivy.app import App
