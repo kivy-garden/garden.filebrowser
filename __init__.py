@@ -375,7 +375,7 @@ class FileBrowser(BoxLayout):
     .. versionadded:: 1.1
     '''
 
-    multiselect = BooleanProperty(True)
+    multiselect = BooleanProperty(False)
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether the user is able to select multiple files or not.
