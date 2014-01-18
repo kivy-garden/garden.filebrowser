@@ -56,7 +56,12 @@ __version__ = '1.1-dev'
 
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.treeview import TreeViewLabel, TreeView
-from kivy.uix.filechooser import FileChooserListView
+from kivy.uix.filechooser import FileChooserIconView as IconView
+try:
+    from kivy.garden.filechooserthumbview import FileChooserThumbView as\
+    IconView
+except:
+    pass
 from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
                              ListProperty, BooleanProperty)
 from kivy.lang import Builder
@@ -101,6 +106,8 @@ def get_drives():
                 drives.append((vol + sep + drive, drive))
     return drives
 
+class FileBrowserIconView(IconView):
+    pass
 
 Builder.load_string('''
 #:kivy 1.2.0
@@ -157,7 +164,7 @@ Builder.load_string('''
             TabbedPanelHeader:
                 text: 'Icon View'
                 content: icon_view
-                FileChooserIconView:
+                FileBrowserIconView:
                     id: icon_view
                     path: root.path
                     filters: root.filters
@@ -257,7 +264,6 @@ class LinkTree(TreeView):
             nodes_new.append((text, path))
             sig_new.append(text + path + sep)
         for node, sig in nodes:
-            print sig
             if sig not in sig_new:
                 self.remove_node(node)
         for text, path in nodes_new:
