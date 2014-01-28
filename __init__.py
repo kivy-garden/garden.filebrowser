@@ -49,6 +49,8 @@ a shortcut to the Documents directory added to the favorites bar::
     `on_success`:
         Fired when the `Select` buttons `on_release` event is called.
 
+    `on_success`:
+        Fired when a file has been selected with a double-tap.
 '''
 
 __all__ = ('FileBrowser', )
@@ -161,6 +163,7 @@ Builder.load_string('''
                     multiselect: root.multiselect
                     dirselect: root.dirselect
                     rootpath: root.rootpath
+                    on_submit: root.dispatch('on_submit')
             TabbedPanelHeader:
                 text: 'Icon View'
                 content: icon_view
@@ -173,6 +176,7 @@ Builder.load_string('''
                     multiselect: root.multiselect
                     dirselect: root.dirselect
                     rootpath: root.rootpath
+                    on_submit: root.dispatch('on_submit')
     GridLayout:
         size_hint: (1, None)
         height: file_text.line_height * 4
@@ -311,7 +315,7 @@ class FileBrowser(BoxLayout):
     '''FileBrowser class, see module documentation for more information.
     '''
 
-    __events__ = ('on_canceled', 'on_success',)
+    __events__ = ('on_canceled', 'on_success', 'on_submit')
 
     _listview = ObjectProperty(None)
     _iconview = ObjectProperty(None)
@@ -450,6 +454,9 @@ class FileBrowser(BoxLayout):
     def on_canceled(self):
         pass
 
+    def on_submit(self):
+        pass
+
     def __init__(self, **kwargs):
         super(FileBrowser, self).__init__(**kwargs)
         self._iconview.bind(selection=partial(self._attr_callback, 'selection'),
@@ -498,15 +505,18 @@ if __name__ == '__main__':
                 user_path = expanduser('~') + sep + 'Documents'
             browser = FileBrowser(select_string='Select',
                                   favorites=[(user_path, 'Documents')])
-            browser.bind(
-                        on_success=self._fbrowser_success,
-                        on_canceled=self._fbrowser_canceled)
+            browser.bind(on_success=self._fbrowser_success,
+                        on_canceled=self._fbrowser_canceled,
+                        on_submit=self._fbrowser_submit)
             return browser
 
         def _fbrowser_canceled(self, instance):
             print 'cancelled, Close self.'
 
         def _fbrowser_success(self, instance):
+            print instance.selection
+
+        def _fbrowser_submit(self, instance):
             print instance.selection
 
     TestApp().run()
