@@ -130,8 +130,6 @@ Builder.load_string('''
     cancel_state: cancel_button.state
     filename: file_text.text
     on_favorites: link_tree.reload_favs(self.favorites)
-    _listview: list_view
-    _iconview: icon_view
     BoxLayout:
         orientation: 'horizontal'
         spacing: 5
@@ -317,9 +315,6 @@ class FileBrowser(BoxLayout):
 
     __events__ = ('on_canceled', 'on_success', 'on_submit')
 
-    _listview = ObjectProperty(None)
-    _iconview = ObjectProperty(None)
-
     select_state = OptionProperty('normal', options=('normal', 'down'))
     '''State of the 'select' button, must be one of 'normal' or 'down'.
     The state is 'down' only when the button is currently touched/clicked,
@@ -459,22 +454,22 @@ class FileBrowser(BoxLayout):
 
     def __init__(self, **kwargs):
         super(FileBrowser, self).__init__(**kwargs)
-        self._iconview.bind(selection=partial(self._attr_callback, 'selection'),
-                            path=partial(self._attr_callback, 'path'),
-                            filters=partial(self._attr_callback, 'filters'),
-                            filter_dirs=partial(self._attr_callback, 'filter_dirs'),
-                            show_hidden=partial(self._attr_callback, 'show_hidden'),
-                            multiselect=partial(self._attr_callback, 'multiselect'),
-                            dirselect=partial(self._attr_callback, 'dirselect'),
-                            rootpath=partial(self._attr_callback, 'rootpath'))
-        self._listview.bind(selection=partial(self._attr_callback, 'selection'),
-                            path=partial(self._attr_callback, 'path'),
-                            filters=partial(self._attr_callback, 'filters'),
-                            filter_dirs=partial(self._attr_callback, 'filter_dirs'),
-                            show_hidden=partial(self._attr_callback, 'show_hidden'),
-                            multiselect=partial(self._attr_callback, 'multiselect'),
-                            dirselect=partial(self._attr_callback, 'dirselect'),
-                            rootpath=partial(self._attr_callback, 'rootpath'))
+        self.ids.icon_view.bind(selection=partial(self._attr_callback, 'selection'),
+                                path=partial(self._attr_callback, 'path'),
+                                filters=partial(self._attr_callback, 'filters'),
+                                filter_dirs=partial(self._attr_callback, 'filter_dirs'),
+                                show_hidden=partial(self._attr_callback, 'show_hidden'),
+                                multiselect=partial(self._attr_callback, 'multiselect'),
+                                dirselect=partial(self._attr_callback, 'dirselect'),
+                                rootpath=partial(self._attr_callback, 'rootpath'))
+        self.ids.list_view.bind(selection=partial(self._attr_callback, 'selection'),
+                                path=partial(self._attr_callback, 'path'),
+                                filters=partial(self._attr_callback, 'filters'),
+                                filter_dirs=partial(self._attr_callback, 'filter_dirs'),
+                                show_hidden=partial(self._attr_callback, 'show_hidden'),
+                                multiselect=partial(self._attr_callback, 'multiselect'),
+                                dirselect=partial(self._attr_callback, 'dirselect'),
+                                rootpath=partial(self._attr_callback, 'rootpath'))
 
     def _shorten_filenames(self, filenames):
         if not len(filenames):
