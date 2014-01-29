@@ -68,6 +68,7 @@ from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
                              ListProperty, BooleanProperty)
 from kivy.lang import Builder
 from kivy.utils import platform as core_platform
+from kivy.clock import Clock
 import string
 from os.path import sep, dirname, expanduser, isdir
 from os import walk
@@ -454,6 +455,9 @@ class FileBrowser(BoxLayout):
 
     def __init__(self, **kwargs):
         super(FileBrowser, self).__init__(**kwargs)
+        Clock.schedule_once(self._post_init)
+
+    def _post_init(self, *largs):
         self.ids.icon_view.bind(selection=partial(self._attr_callback, 'selection'),
                                 path=partial(self._attr_callback, 'path'),
                                 filters=partial(self._attr_callback, 'filters'),
