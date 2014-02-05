@@ -115,6 +115,7 @@ class FileBrowserIconView(IconView):
 Builder.load_string('''
 #:kivy 1.2.0
 #:import metrics kivy.metrics
+#:import abspath os.path.abspath
 
 <TreeLabel>:
     on_touch_down:
@@ -147,35 +148,44 @@ Builder.load_string('''
                     height: self.minimum_height
                     on_parent: self.fill_tree(root.favorites)
                     root_options: {'text': 'Locations', 'no_selection':True}
-        TabbedPanel:
-            id: tabbed_browser
-            size_hint: (.8, 1)
-            do_default_tab: False
-            TabbedPanelItem:
-                text: 'List View'
-                FileChooserListView:
-                    id: list_view
-                    path: root.path
-                    filters: root.filters
-                    filter_dirs: root.filter_dirs
-                    show_hidden: root.show_hidden
-                    multiselect: root.multiselect
-                    dirselect: root.dirselect
-                    rootpath: root.rootpath
-                    on_submit: root.dispatch('on_submit')
-            TabbedPanelHeader:
-                text: 'Icon View'
-                content: icon_view
-                FileBrowserIconView:
-                    id: icon_view
-                    path: root.path
-                    filters: root.filters
-                    filter_dirs: root.filter_dirs
-                    show_hidden: root.show_hidden
-                    multiselect: root.multiselect
-                    dirselect: root.dirselect
-                    rootpath: root.rootpath
-                    on_submit: root.dispatch('on_submit')
+        BoxLayout:
+            size_hint_x: .8
+            orientation: 'vertical'
+            Label:
+                size_hint_y: None
+                height: '22dp'
+                text_size: self.size
+                padding_x: '-10dp'
+                text: abspath(root.path)
+                valign: 'middle'
+            TabbedPanel:
+                id: tabbed_browser
+                do_default_tab: False
+                TabbedPanelItem:
+                    text: 'List View'
+                    FileChooserListView:
+                        id: list_view
+                        path: root.path
+                        filters: root.filters
+                        filter_dirs: root.filter_dirs
+                        show_hidden: root.show_hidden
+                        multiselect: root.multiselect
+                        dirselect: root.dirselect
+                        rootpath: root.rootpath
+                        on_submit: root.dispatch('on_submit')
+                TabbedPanelHeader:
+                    text: 'Icon View'
+                    content: icon_view
+                    FileBrowserIconView:
+                        id: icon_view
+                        path: root.path
+                        filters: root.filters
+                        filter_dirs: root.filter_dirs
+                        show_hidden: root.show_hidden
+                        multiselect: root.multiselect
+                        dirselect: root.dirselect
+                        rootpath: root.rootpath
+                        on_submit: root.dispatch('on_submit')
     GridLayout:
         size_hint: (1, None)
         height: file_text.line_height * 4
