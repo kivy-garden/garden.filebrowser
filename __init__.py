@@ -1,6 +1,6 @@
 '''
 FileBrowser
-======
+===========
 
 The :class:`FileBrowser` widget is an advanced file browser. You use it
 similarly to FileChooser usage.
@@ -51,6 +51,9 @@ a shortcut to the Documents directory added to the favorites bar::
 
     `on_success`:
         Fired when a file has been selected with a double-tap.
+
+.. image:: _static/filebrowser.png
+    :align: right
 '''
 
 __all__ = ('FileBrowser', )
@@ -370,7 +373,7 @@ class FileBrowser(BoxLayout):
     selection = ListProperty([])
     '''Read-only :class:`~kivy.properties.ListProperty`.
     Contains the list of files that are currently selected in the current tab.
-    See :kivydoc:`kivy.filechooser.FileChooserController.selection`.
+    See :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.selection`.
 
     .. versionchanged:: 1.1
     '''
@@ -380,7 +383,7 @@ class FileBrowser(BoxLayout):
     :class:`~kivy.properties.StringProperty`, defaults to the current working
     directory as a unicode string. It specifies the path on the filesystem that
     browser should refer to.
-    See :kivydoc:`kivy.filechooser.FileChooserController.path`.
+    See :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.path`.
 
     .. versionadded:: 1.1
     '''
@@ -388,7 +391,7 @@ class FileBrowser(BoxLayout):
     filters = ListProperty([])
     ''':class:`~kivy.properties.ListProperty`, defaults to [], equal to '\*'.
     Specifies the filters to be applied to the files in the directory.
-    See :kivydoc:`kivy.filechooser.FileChooserController.filters`.
+    See :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.filters`.
 
     Filering keywords that the user types into the filter field as a comma
     separated list will be reflected here.
@@ -400,7 +403,8 @@ class FileBrowser(BoxLayout):
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Indicates whether filters should also apply to directories.
-    See :kivydoc:`kivy.filechooser.FileChooserController.filter_dirs`.
+    See
+    :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.filter_dirs`.
 
     .. versionadded:: 1.1
     '''
@@ -409,7 +413,8 @@ class FileBrowser(BoxLayout):
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether hidden files and folders should be shown.
-    See :kivydoc:`kivy.filechooser.FileChooserController.show_hidden`.
+    See
+    :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.show_hidden`.
 
     .. versionadded:: 1.1
     '''
@@ -418,7 +423,8 @@ class FileBrowser(BoxLayout):
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether the user is able to select multiple files or not.
-    See :kivydoc:`kivy.filechooser.FileChooserController.multiselect`.
+    See
+    :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.multiselect`.
 
     .. versionadded:: 1.1
     '''
@@ -427,7 +433,8 @@ class FileBrowser(BoxLayout):
     '''
     :class:`~kivy.properties.BooleanProperty`, defaults to False.
     Determines whether directories are valid selections or not.
-    See :kivydoc:`kivy.filechooser.FileChooserController.dirselect`.
+    See
+    :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.dirselect`.
 
     .. versionadded:: 1.1
     '''
@@ -439,7 +446,7 @@ class FileBrowser(BoxLayout):
     rootpath to /users/foo, the user will be unable to go to /users or to any
     other directory not starting with /users/foo.
     :class:`~kivy.properties.StringProperty`, defaults to None.
-    See :kivydoc:`kivy.filechooser.FileChooserController.rootpath`.
+    See :kivy_fchooser:`kivy.uix.filechooser.FileChooserController.rootpath`.
 
     .. versionadded:: 1.1
     '''

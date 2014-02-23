@@ -1,5 +1,9 @@
+
+See http://kivy-garden.github.io/garden.filebrowser/index.html
+
+
 FileBrowser
-======
+===========
 
 The :class:`FileBrowser` widget is an advanced file browser. You use it
 similarly to FileChooser usage.
