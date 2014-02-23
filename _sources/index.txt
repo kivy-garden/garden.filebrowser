@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to FileBrowser's documentation!
-======================================
+=======================================
 
 Contents:
 
@@ -12,6 +12,7 @@ Contents:
    :maxdepth: 2
 
    api.rst
+
 *  :ref:`genindex`
 *  :ref:`modindex`
 *  :ref:`search`
