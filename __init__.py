@@ -102,13 +102,13 @@ def get_drives():
         places = (sep + u'mnt', sep + u'media')
         for place in places:
             if isdir(place):
-                for directory in walk(place).next()[1]:
+                for directory in next(walk(place))[1]:
                     drives.append((place + sep + directory, directory))
     elif platform == 'macosx' or platform == 'ios':
         drives.append((expanduser(u'~'), '~/'))
         vol = sep + u'Volume'
         if isdir(vol):
-            for drive in walk(vol).next()[1]:
+            for drive in next(walk(vol))[1]:
                 drives.append((vol + sep + drive, drive))
     return drives
 
@@ -316,9 +316,9 @@ class LinkTree(TreeView):
         if not node.path or node.nodes:
             return
         parent = node.path
-        next = walk(parent).next()
-        if next:
-            for path in next[1]:
+        _next = next(walk(parent))
+        if _next:
+            for path in _next[1]:
                 self.add_node(TreeLabel(text=path, path=parent + sep + path),
                               node)
 
