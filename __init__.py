@@ -70,14 +70,13 @@ except:
 from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
                              ListProperty, BooleanProperty)
 from kivy.lang import Builder
-from kivy.utils import platform as core_platform
+from kivy.utils import platform
 from kivy.clock import Clock
 import string
 from os.path import sep, dirname, expanduser, isdir
 from os import walk
 from functools import partial
 
-platform = core_platform()
 if platform == 'win':
     from ctypes import windll, create_unicode_buffer
 
