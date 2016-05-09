@@ -5,7 +5,7 @@ See http://kivy-garden.github.io/garden.filebrowser/index.html
 FileBrowser
 ===========
 
-The :class:`FileBrowser` widget is an advanced file browser. You use it
+The ``FileBrowser`` widget is an advanced file browser. You use it
 similarly to FileChooser usage.
 
 It provides a shortcut bar with links to special and system directories.
@@ -16,9 +16,11 @@ custom paths to be added to the shortcuts list.
 It provides a icon and list view to choose files from. And it also accepts
 filter and filename inputs.
 
-To create a FileBrowser which prints the currently selected file as well as
-the current text in the filename field when 'Select' is pressed, with
-a shortcut to the Documents directory added to the favorites bar::
+To create a ``FileBrowser`` which prints the currently selected file as 
+well as the current text in the filename field when 'Select' is pressed,
+with a shortcut to the Documents directory added to the favorites bar:
+
+.. code-block:: python
 
     ffrom kivy.app import App
     from os.path import sep, expanduser, isdir, dirname
@@ -45,16 +47,15 @@ a shortcut to the Documents directory added to the favorites bar::
 
     TestApp().run()
 
-:Events::
+Events
+------
 
-    `on_canceled`:
-        Fired when the `Cancel` buttons `on_release` event is called.
-
-    `on_success`:
-        Fired when the `Select` buttons `on_release` event is called.
+- ``on_canceled``
+  Fired when the `Cancel` buttons `on_release` event is called.
+- ``on_success``
+  Fired when the `Select` buttons `on_release` event is called.
 
 License
 =======
 
 Same license as kivy (currently MIT License).
-
