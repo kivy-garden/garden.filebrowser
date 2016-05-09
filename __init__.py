@@ -157,7 +157,7 @@ Builder.load_string('''
                 size_hint_y: None
                 height: '22dp'
                 text_size: self.size
-                padding_x: '-10dp'
+                padding_x: '10dp'
                 text: abspath(root.path)
                 valign: 'middle'
             TabbedPanel:
@@ -175,9 +175,8 @@ Builder.load_string('''
                         dirselect: root.dirselect
                         rootpath: root.rootpath
                         on_submit: root.dispatch('on_submit')
-                TabbedPanelHeader:
+                TabbedPanelItem:
                     text: 'Icon View'
-                    content: icon_view
                     FileBrowserIconView:
                         id: icon_view
                         path: root.path
