@@ -211,7 +211,7 @@ Builder.load_string('''
             on_text_validate:
                 root.filters = self.text.split(',') if self.text else []
             multiline: False
-            text: ','.join(root.filters)
+            text: ','.join([filt for filt in root.filters if isinstance(filt, str)])
         Button:
             id: cancel_button
             size_hint_x: None
