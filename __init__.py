@@ -17,8 +17,10 @@ To create a FileBrowser which prints the currently selected file as well as
 the current text in the filename field when 'Select' is pressed, with
 a shortcut to the Documents directory added to the favorites bar::
 
-    ffrom kivy.app import App
+    from kivy.app import App
+    from kivy.utils import platform
     from os.path import sep, expanduser, isdir, dirname
+    from sys import getfilesystemencoding
 
     class TestApp(App):
 
@@ -27,6 +29,7 @@ a shortcut to the Documents directory added to the favorites bar::
                 user_path = dirname(expanduser('~')) + sep + 'Documents'
             else:
                 user_path = expanduser('~') + sep + 'Documents'
+            user_path = user_path.decode(getfilesystemencoding())
             browser = FileBrowser(select_string='Select',
                                   favorites=[(user_path, 'Documents')])
             browser.bind(
@@ -72,13 +75,31 @@ from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
 from kivy.lang import Builder
 from kivy.utils import platform
 from kivy.clock import Clock
+from kivy.compat import PY2
 import string
 from os.path import sep, dirname, expanduser, isdir
 from os import walk
+from sys import getfilesystemencoding
 from functools import partial
 
 if platform == 'win':
     from ctypes import windll, create_unicode_buffer
+
+
+def get_home_directory():
+    if platform == 'win':
+        user_path = expanduser('~')
+        if not isdir(user_path + sep + 'Desktop'):
+            user_path = dirname(user_path) + sep
+        else:
+            user_path += sep
+    else:
+        user_path = expanduser('~') + sep
+
+    if PY2:
+        user_path = user_path.decode(getfilesystemencoding())
+
+    return user_path
 
 
 def get_drives():
@@ -236,14 +257,7 @@ class LinkTree(TreeView):
     _computer_node = None
 
     def fill_tree(self, fav_list):
-        if platform == 'win':
-            user_path = expanduser(u'~')
-            if not isdir(user_path + sep + 'Desktop'):
-                user_path = dirname(user_path) + sep
-            else:
-                user_path += sep
-        else:
-            user_path = expanduser(u'~') + sep
+        user_path = get_home_directory()
         self._favs = self.add_node(TreeLabel(text='Favorites', is_open=True,
                                              no_selection=True))
         self.reload_favs(fav_list)
@@ -286,14 +300,7 @@ class LinkTree(TreeView):
                               self._computer_node)
 
     def reload_favs(self, fav_list):
-        if platform == 'win':
-            user_path = expanduser(u'~')
-            if not isdir(user_path + sep + 'Desktop'):
-                user_path = dirname(user_path) + sep
-            else:
-                user_path += sep
-        else:
-            user_path = expanduser('~') + sep
+        user_path = get_home_directory()
         favs = self._favs
         remove = []
         for node in self.iterate_all_nodes(favs):
@@ -510,13 +517,7 @@ if __name__ == '__main__':
     class TestApp(App):
 
         def build(self):
-            if platform == 'win':
-                user_path = expanduser('~')
-                if not isdir(user_path + sep + 'Desktop'):
-                    user_path = dirname(user_path)
-                user_path = user_path + sep + 'Documents'
-            else:
-                user_path = expanduser('~') + sep + 'Documents'
+            user_path = get_home_directory() + 'Documents'
             browser = FileBrowser(select_string='Select',
                                   favorites=[(user_path, 'Documents')])
             browser.bind(on_success=self._fbrowser_success,
