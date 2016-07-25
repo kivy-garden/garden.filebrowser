@@ -17,28 +17,28 @@ To create a FileBrowser which prints the currently selected file as well as
 the current text in the filename field when 'Select' is pressed, with
 a shortcut to the Documents directory added to the favorites bar::
 
-    ffrom kivy.app import App
-    from os.path import sep, expanduser, isdir, dirname
+    import os
+    from kivy.app import App
 
     class TestApp(App):
 
         def build(self):
-            if platform == 'win':
-                user_path = dirname(expanduser('~')) + sep + 'Documents'
-            else:
-                user_path = expanduser('~') + sep + 'Documents'
+            user_path = os.path.join(get_home_directory(), 'Documents')
             browser = FileBrowser(select_string='Select',
                                   favorites=[(user_path, 'Documents')])
-            browser.bind(
-                        on_success=self._fbrowser_success,
-                        on_canceled=self._fbrowser_canceled)
+            browser.bind(on_success=self._fbrowser_success,
+                         on_canceled=self._fbrowser_canceled,
+                         on_submit=self._fbrowser_submit)
             return browser
 
         def _fbrowser_canceled(self, instance):
-            print 'cancelled, Close self.'
+            print('cancelled, Close self.')
 
         def _fbrowser_success(self, instance):
-            print instance.selection
+            print(instance.selection)
+
+        def _fbrowser_submit(self, instance):
+            print(instance.selection)
 
     TestApp().run()
 
@@ -72,13 +72,31 @@ from kivy.properties import (ObjectProperty, StringProperty, OptionProperty,
 from kivy.lang import Builder
 from kivy.utils import platform
 from kivy.clock import Clock
+from kivy.compat import PY2
 import string
-from os.path import sep, dirname, expanduser, isdir
+from os.path import sep, dirname, expanduser, isdir, join
 from os import walk
+from sys import getfilesystemencoding
 from functools import partial
 
 if platform == 'win':
     from ctypes import windll, create_unicode_buffer
+
+
+def get_home_directory():
+    if platform == 'win':
+        user_path = expanduser('~')
+
+        if not isdir(join(user_path, 'Desktop')):
+            user_path = dirname(user_path)
+
+    else:
+        user_path = expanduser('~')
+
+    if PY2:
+        user_path = user_path.decode(getfilesystemencoding())
+
+    return user_path
 
 
 def get_drives():
@@ -236,14 +254,7 @@ class LinkTree(TreeView):
     _computer_node = None
 
     def fill_tree(self, fav_list):
-        if platform == 'win':
-            user_path = expanduser(u'~')
-            if not isdir(user_path + sep + 'Desktop'):
-                user_path = dirname(user_path) + sep
-            else:
-                user_path += sep
-        else:
-            user_path = expanduser(u'~') + sep
+        user_path = get_home_directory()
         self._favs = self.add_node(TreeLabel(text='Favorites', is_open=True,
                                              no_selection=True))
         self.reload_favs(fav_list)
@@ -252,9 +263,9 @@ class LinkTree(TreeView):
                                        no_selection=True))
         places = ('Documents', 'Music', 'Pictures', 'Videos')
         for place in places:
-            if isdir(user_path + place):
-                self.add_node(TreeLabel(text=place, path=user_path +
-                                        place), libs)
+            if isdir(join(user_path, place)):
+                self.add_node(TreeLabel(text=place, path=join(user_path,
+                                        place)), libs)
         self._computer_node = self.add_node(TreeLabel(text='Computer',\
         is_open=True, no_selection=True))
         self._computer_node.bind(on_touch_down=self._drives_touch)
@@ -286,14 +297,7 @@ class LinkTree(TreeView):
                               self._computer_node)
 
     def reload_favs(self, fav_list):
-        if platform == 'win':
-            user_path = expanduser(u'~')
-            if not isdir(user_path + sep + 'Desktop'):
-                user_path = dirname(user_path) + sep
-            else:
-                user_path += sep
-        else:
-            user_path = expanduser('~') + sep
+        user_path = get_home_directory()
         favs = self._favs
         remove = []
         for node in self.iterate_all_nodes(favs):
@@ -303,9 +307,9 @@ class LinkTree(TreeView):
             self.remove_node(node)
         places = ('Desktop', 'Downloads')
         for place in places:
-            if isdir(user_path + place):
-                self.add_node(TreeLabel(text=place, path=user_path +
-                                        place), favs)
+            if isdir(join(user_path, place)):
+                self.add_node(TreeLabel(text=place, path=join(user_path,
+                                        place)), favs)
         for path, name in fav_list:
             if isdir(path):
                 self.add_node(TreeLabel(text=name, path=path), favs)
@@ -504,24 +508,18 @@ class FileBrowser(BoxLayout):
         setattr(self, attr, getattr(obj, attr))
 
 if __name__ == '__main__':
+    import os
     from kivy.app import App
-    from os.path import sep, expanduser, isdir, dirname
 
     class TestApp(App):
 
         def build(self):
-            if platform == 'win':
-                user_path = expanduser('~')
-                if not isdir(user_path + sep + 'Desktop'):
-                    user_path = dirname(user_path)
-                user_path = user_path + sep + 'Documents'
-            else:
-                user_path = expanduser('~') + sep + 'Documents'
+            user_path = os.path.join(get_home_directory(), 'Documents')
             browser = FileBrowser(select_string='Select',
                                   favorites=[(user_path, 'Documents')])
             browser.bind(on_success=self._fbrowser_success,
-                        on_canceled=self._fbrowser_canceled,
-                        on_submit=self._fbrowser_submit)
+                         on_canceled=self._fbrowser_canceled,
+                         on_submit=self._fbrowser_submit)
             return browser
 
         def _fbrowser_canceled(self, instance):
