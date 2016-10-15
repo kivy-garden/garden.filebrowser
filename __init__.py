@@ -49,7 +49,7 @@ a shortcut to the Documents directory added to the favorites bar::
     `on_success`:
         Fired when the `Select` buttons `on_release` event is called.
 
-    `on_success`:
+    `on_submit`:
         Fired when a file has been selected with a double-tap.
 
 .. image:: _static/filebrowser.png
