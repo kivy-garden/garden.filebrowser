@@ -111,7 +111,8 @@ def get_drives():
                 drive = letter + u':'
                 res = GetVolumeInformationW(drive + sep, name, 64, None,
                                             None, None, None, 0)
-                drives.append((drive, name.value))
+                if isdir(drive):
+                    drives.append((drive, name.value))
             bitmask >>= 1
     elif platform == 'linux':
         drives.append((sep, sep))
