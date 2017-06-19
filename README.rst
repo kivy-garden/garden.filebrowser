@@ -22,7 +22,7 @@ with a shortcut to the Documents directory added to the favorites bar:
 
 .. code-block:: python
 
-    ffrom kivy.app import App
+    from kivy.app import App
     from os.path import sep, expanduser, isdir, dirname
 
     class TestApp(App):
