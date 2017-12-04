@@ -24,11 +24,12 @@ with a shortcut to the Documents directory added to the favorites bar:
 
     from kivy.app import App
     from os.path import sep, expanduser, isdir, dirname
+    import sys
 
     class TestApp(App):
 
         def build(self):
-            if platform == 'win':
+            if sys.platform == 'win':
                 user_path = dirname(expanduser('~')) + sep + 'Documents'
             else:
                 user_path = expanduser('~') + sep + 'Documents'
